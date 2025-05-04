@@ -92,7 +92,7 @@ class Reminders(commands.Cog):
             return
         
 
-    @tasks.loop(seconds=30)
+    @tasks.loop(seconds=15)
     async def check_reminders(self):
         current_time = datetime.now()
         mongo = self.client.mongo
