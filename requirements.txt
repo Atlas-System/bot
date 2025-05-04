@@ -6,3 +6,4 @@ cogwatch
 motor
 objgraph
 jishaku
+fastapi
