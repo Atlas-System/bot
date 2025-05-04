@@ -2,6 +2,10 @@ from discord import Interaction, Embed, Color, ButtonStyle
 from discord.ext import commands
 from discord import app_commands
 from Utils.constants import emojis, ATLAS_GREEN
+import asyncio
+import time
+from collections import deque
+import io
 import discord.ui
 
 
@@ -10,6 +14,7 @@ import discord.ui
 class Util(commands.Cog):
     def __init__(self, client: commands.Bot):
         super().__init__()
+
         self.client = client
 
     @commands.hybrid_command(name="ping", description="Check the bot's latency")

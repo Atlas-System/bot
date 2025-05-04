@@ -96,12 +96,11 @@ class Reminders(commands.Cog):
     async def check_reminders(self):
         current_time = datetime.now()
         mongo = self.client.mongo
-        db = mongo["Atlas"]
+        db = mongo["Data"]
         collection = db["reminders"]
 
         reminders = collection.find({"timestamp": {"$lte": current_time}})
-        
-        li = await reminders.to_list(length=None)
+        li = await reminders.to_list(length=999)
         if not li:
             return
         

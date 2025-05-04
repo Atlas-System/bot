@@ -72,14 +72,19 @@ class ConfigPanel(ui.Select):
             ]
         super().__init__(placeholder="Configuration Menu",max_values=1,min_values=1,options=options, row=4)
     async def callback(self, interaction: Interaction):
+        db = self.mongo["Atlas"]["Config"]
+        find = await db.find_one({"_id": interaction.guild.id})
+        if not find:
+            insert = await db.insert_one({"_id": interaction.guild.id, "Config": {}})
+            find = await db.find_one({"_id": interaction.guild.id})
+
+            
         await interaction.response.defer()
 
 
         if self.values[0] == "perms":
             db = self.mongo["Atlas"]["Config"]
-            
-            find = await db.find_one({"_id": interaction.guild.id})
-            
+                        
             modules = find["Config"] if find and "Config" in find else {}
             staff_roles_find = find.get("staff_roles", [])
             mgmt_roles_find = find.get("management_roles", [])
@@ -117,7 +122,6 @@ class ConfigPanel(ui.Select):
         if self.values[0] == "modules":
             db = self.mongo["Atlas"]["Config"]
             
-            find = await db.find_one({"_id": interaction.guild.id})
             modules = find["Config"] if find and "Config" in find else {}
 
             view = ui.View(timeout=None)
@@ -142,7 +146,6 @@ class ConfigPanel(ui.Select):
         if self.values[0] == "moderation":
             db = self.mongo["Atlas"]["Config"]
             
-            find = await db.find_one({"_id": interaction.guild.id})
             modules = find["Config"] if find and "Config" in find else {}
             modlog_channel = modules.get("moderation_module", {}).get("log_channel_id")
             enabled = modules.get("moderation_module", {}).get("confirmation", False)
@@ -174,7 +177,6 @@ class ConfigPanel(ui.Select):
                 
         if self.values[0] == "notifications":
             db = self.mongo["Atlas"]["Config"]
-            find = await db.find_one({"_id": interaction.guild.id})
 
             modules = find["Config"] if find and "Config" in find else {}
             channel = modules.get("notifications", {}).get("log_channel_id")
@@ -203,7 +205,6 @@ class ConfigPanel(ui.Select):
         
         if self.values[0] == "suggestions":
             db = self.mongo["Atlas"]["Config"]
-            find = await db.find_one({"_id": interaction.guild.id})
 
 
             modules = find["Config"] if find and "Config" in find else {}
