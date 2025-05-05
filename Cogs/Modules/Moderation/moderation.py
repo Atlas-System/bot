@@ -1,5 +1,5 @@
 from discord.ext import commands
-from discord import app_commands, HTTPException, AllowedMentions, Member, Embed, Color, utils
+import discord
 from Utils.constants import emojis, ATLAS_GREEN
 from Utils.utils import check_module_status, permission_check, get_guild_config
 from Utils.embeds import MissingPermissions, ModuleDisabled, MissingConfigChannel, ChannelNotFound, ChannelSendFailure, PermissionError
@@ -13,8 +13,8 @@ class Moderation(commands.Cog):
 
 
     @commands.hybrid_command(name="warn", description="Warn a user")
-    @app_commands.describe(user="The user you want to warn", reason="The reason for the warning", silent="Whether to DM the user or not")
-    async def warn(self, ctx: commands.Context, user: Member, reason: str, silent: bool = False):
+    @discord.app_commands.describe(user="The user you want to warn", reason="The reason for the warning", silent="Whether to DM the user or not")
+    async def warn(self, ctx: commands.Context, user: discord.Member, reason: str, silent: bool = False):
         if ctx.interaction:
             try:
                 await ctx.interaction.response.defer(ephemeral=True)
@@ -27,7 +27,7 @@ class Moderation(commands.Cog):
             return await ctx.send(ephemeral=True,
                                   embed=data["embed"],
                                   view=data["view"],
-                                  allowed_mentions=AllowedMentions.none())
+                                  allowed_mentions=discord.AllowedMentions.none())
 
         status = await check_module_status(guild_id=ctx.guild.id,
                                            module="moderation_module",
@@ -38,7 +38,7 @@ class Moderation(commands.Cog):
             return await ctx.send(ephemeral=True,
                                   embed=data["embed"],
                                   view=data["view"],
-                                  allowed_mentions=AllowedMentions.none())
+                                  allowed_mentions=discord.AllowedMentions.none())
 
         config = await get_guild_config(ctx.guild.id, self.client.mongo)
         module_config = config["Config"]["moderation_module"]
@@ -51,7 +51,7 @@ class Moderation(commands.Cog):
             return await ctx.send(ephemeral=True,
                                   embed=data["embed"],
                                   view=data["view"],
-                                  allowed_mentions=AllowedMentions.none())
+                                  allowed_mentions=discord.AllowedMentions.none())
 
         log_channel = ctx.guild.get_channel(log_channel_id)
         if not log_channel:
@@ -60,16 +60,16 @@ class Moderation(commands.Cog):
             return await ctx.send(ephemeral=True,
                                   embed=data["embed"],
                                   view=data["view"],
-                                  allowed_mentions=AllowedMentions.none())
+                                  allowed_mentions=discord.AllowedMentions.none())
 
-        timestamp = utils.utcnow()
+        timestamp = discord.utils.utcnow()
 
         if confirmation is True:
             view = YesNoMenu(user_id=ctx.author.id)
             await ctx.send(content=f"{emojis['moderation']} **{ctx.author.name},** are you sure you want to warn {user.name} for ``{reason}``?",
                            view=view,
                            ephemeral=True,
-                           allowed_mentions=AllowedMentions.none())
+                           allowed_mentions=discord.AllowedMentions.none())
             
             await view.wait()
             if view.value is False:
@@ -83,8 +83,8 @@ class Moderation(commands.Cog):
 
         
 
-        embed = Embed(title=f"Case #{case_id}",
-                              color=Color.dark_embed(),
+        embed = discord.Embed(title=f"Case #{case_id}",
+                              color=discord.Color.dark_embed(),
                               timestamp=timestamp,
                               description=
                               f"> **User:** {user.mention} ``({user.id})``\n"
@@ -94,14 +94,14 @@ class Moderation(commands.Cog):
         embed.set_footer(text=f"Case ID: {case_id}", icon_url=ctx.author.display_avatar.url)
         try:
             await log_channel.send(embed=embed,
-                                   allowed_mentions=AllowedMentions.none())
-        except HTTPException:
+                                   allowed_mentions=discord.AllowedMentions.none())
+        except discord.HTTPException:
             data = ChannelSendFailure()
 
             return await ctx.send(ephemeral=True,
                                   embed=data["embed"],
                                   view=data["view"],
-                                  allowed_mentions=AllowedMentions.none())
+                                  allowed_mentions=discord.AllowedMentions.none())
 
         try:
             await self.client.mongo["Data"]["Moderation"].insert_one({
@@ -132,7 +132,7 @@ class Moderation(commands.Cog):
         if not silent:
             try:
                 await user.send(f"{emojis['moderation']} You have been warned in **{ctx.guild.name}** for ``{reason}``.")
-            except HTTPException:
+            except discord.HTTPException:
                 pass
 
         return

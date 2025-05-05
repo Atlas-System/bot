@@ -1,10 +1,40 @@
 from discord.ext import commands
 from motor.motor_asyncio import AsyncIOMotorClient
 from Utils.constants import emojis
-from discord import ui, ButtonStyle, Interaction, Button, Embed, Color, utils
+import discord
 
+class SuggestionsManagement(discord.ui.View):
+    def __init__(self, mongo):
+        super().__init__(timeout=None)
+        self.mongo = mongo
+        self.db = self.mongo["Data"]
+        self.collection = self.db["Suggestions"]
 
-class SuggestionViews(ui.View):
+    async def on_timeout(self):
+        for item in self.children:
+            item.disabled = True
+        await self.message.edit(view=self)
+        return
+    
+    @discord.ui.button(label="Accept", style=discord.ButtonStyle.green, custom_id=f"persistent_view:accept")
+    async def accept(self, interaction: discord.Interaction, button: discord.Button):
+        config = await self.mongo["Atlas"]["Config"].find_one({"_id": interaction.guild.id})
+        if not config:
+            return await interaction.response.send_message(f"{emojis['no']} **{interaction.user.name},** please setup your server.", ephemeral=True)
+        
+        management_roles = config["Config"].get("management_roles", [])
+        if not any(role.id in management_roles for role in interaction.user.roles):
+            return await interaction.response.send_message(f"{emojis['no']} **{interaction.user.name},** you do not have permission to do this.", ephemeral=True)
+        
+        suggestion = await self.collection.find_one({"message_id": interaction.message.id})
+        if not suggestion:
+            return await interaction.response.send_message(f"{emojis['no']} **{interaction.user.name},** I could not find the suggestion.", ephemeral=True)
+        
+        embed = discord.Embed(
+            title=""
+        )
+
+class SuggestionViews(discord.ui.View):
     def __init__(self, mongo):
         super().__init__(timeout=None)
         self.mongo = mongo
@@ -34,8 +64,8 @@ class SuggestionViews(ui.View):
             {"$addToSet": {f"{vote_type}rs": user_id}}
         )
 
-    @ui.button(label="Upvote", style=ButtonStyle.green, custom_id=f"persistent_view:upvote")
-    async def upvote(self, interaction: Interaction, button: Button):
+    @discord.ui.button(label="Upvote", style=discord.ButtonStyle.green, custom_id=f"persistent_view:upvote")
+    async def upvote(self, interaction: discord.Interaction, button: discord.Button):
         user_id = interaction.user.id
         suggestion_id = interaction.message.id
 
@@ -53,8 +83,8 @@ class SuggestionViews(ui.View):
 
         await self.update_embed(suggestion_id, interaction)
 
-    @ui.button(label="Downvote", style=ButtonStyle.red, custom_id=f"persistent_view:downvote")
-    async def downvote(self, interaction: Interaction, button: Button):
+    @discord.ui.button(label="Downvote", style=discord.ButtonStyle.red, custom_id=f"persistent_view:downvote")
+    async def downvote(self, interaction: discord.Interaction, button: discord.Button):
         user_id = interaction.user.id
         suggestion_id = interaction.message.id
 
@@ -83,7 +113,7 @@ class SuggestionViews(ui.View):
             message = await channel.fetch_message(interaction.message.id)
             embed = message.embeds[0]
             embed.set_footer(text=f"{upvotes} Upvotes | {downvotes} Downvotes")
-            embed = Embed(title="New Suggestion", color=Color.dark_embed())
+            embed = discord.Embed(title="New Suggestion", color=discord.Color.dark_embed())
             embed.add_field(name=f"Suggestion", value=f"{actual_suggestion}", inline=False)
             embed.add_field(name=f"Vote Count", value=f"{upvotes} Upvoters | {downvotes} Downvoters", inline=False)
             user = await interaction.client.fetch_user(suggestion["user_id"])
@@ -95,8 +125,8 @@ class SuggestionViews(ui.View):
         return await interaction.followup.send(f"{emojis['no']} **{interaction.user.name},** I could not find the suggestion.", ephemeral=True)
             
 
-    @ui.button(label="List Voters", style=ButtonStyle.grey, custom_id="persistent_view:list_voters")
-    async def list_voters(self, interaction: Interaction, button: Button):
+    @discord.ui.button(label="List Voters", style=discord.ButtonStyle.grey, custom_id="persistent_view:list_voters")
+    async def list_voters(self, interaction: discord.Interaction, button: discord.Button):
         suggestion_id = interaction.message.id
         suggestion = await self.collection.find_one({"message_id": suggestion_id})
         if suggestion:
@@ -104,7 +134,7 @@ class SuggestionViews(ui.View):
             downvoters = [f"<@{user_id}> (Downvote)" for user_id in suggestion.get("Downvoters", [])]
             voters = upvoters + downvoters
             if voters:
-                embed = Embed(title="Voters", description="\n".join(voters), color=Color.dark_embed())
+                embed = discord.Embed(title="Voters", description="\n".join(voters), color=discord.Color.dark_embed())
                 await interaction.response.send_message(embed=embed, ephemeral=True)
             else:
                 await interaction.response.send_message("No votes recorded yet.", ephemeral=True)
@@ -121,7 +151,7 @@ class Suggestions(commands.Cog):
     @suggestion.command(name=f"create", description=f"Make a suggestion.")
     async def suggest(self, ctx, *, suggestion):
         db = self.bot.mongo["Atlas"]["Config"]
-        time = utils.utcnow()
+        time = discord.utils.utcnow()
         
         find = await db.find_one({"_id": ctx.guild.id})
         try:
@@ -140,7 +170,7 @@ class Suggestions(commands.Cog):
         await ctx.send(f"Thank you **{ctx.author.name}** for making a suggestion!", ephemeral=True)
 
 
-        embed = Embed(title="New Suggestion", color=Color.dark_embed())
+        embed = discord.Embed(title="New Suggestion", color=discord.Color.dark_embed())
         embed.add_field(name=f"Suggestion", value=f"{suggestion}", inline=False)
         embed.add_field(name=f"Vote Count", value=f"0 Upvoters | 0 Downvoters", inline=False)
         embed.set_thumbnail(url=ctx.author.display_avatar.url)

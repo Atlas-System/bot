@@ -4,7 +4,7 @@ from Utils.constants import emojis
 from datetime import datetime, timedelta
 from discord.ext import tasks
 from Utils.pages import Simple
-from discord import utils, Embed, Color
+import discord
 
 class Reminders(commands.Cog):
     def __init__(self, client: commands.Bot):
@@ -30,7 +30,7 @@ class Reminders(commands.Cog):
 
         reminder_time = datetime.now() + timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
 
-        timestamp = utils.format_dt(reminder_time, style='f')
+        timestamp = discord.utils.format_dt(reminder_time, style='f')
         mongo = self.client.mongo
         db = mongo["Data"]
         collection = db["reminders"]
@@ -58,13 +58,13 @@ class Reminders(commands.Cog):
         if len(reminders_list) > 10:  
             pages = []
             for i in range(0, len(reminders_list), 10):
-                embed = Embed(
+                embed = discord.Embed(
                     title=f"Active Reminders {i + 1} - {i + 10}",
-                    color=Color.dark_embed()
+                    color=discord.Color.dark_embed()
                 )
                 for reminder in reminders_list[i:i + 10]:
                     user = self.client.get_user(reminder["user_id"])
-                    timestamp = utils.format_dt(reminder["timestamp"], style='f')
+                    timestamp = discord.utils.format_dt(reminder["timestamp"], style='f')
                     embed.add_field(
                         name=f"Reminder by {user.name if user else 'Unknown User'}",
                         value=f"**Message:** {reminder['message']}\n**Time:** {timestamp}",
@@ -77,10 +77,10 @@ class Reminders(commands.Cog):
         
         for i in reminders_list:
             user = self.client.get_user(i["user_id"])
-            timestamp = utils.format_dt(i["timestamp"], style='f')
-            embed = Embed(
+            timestamp = discord.utils.format_dt(i["timestamp"], style='f')
+            embed = discord.Embed(
                 title=f"Active Reminders",
-                color=Color.dark_embed()
+                color=discord.Color.dark_embed()
             )
             embed.add_field(
                 name=f"Reminder by {user.name if user else 'Unknown User'}",

@@ -1,23 +1,21 @@
-from discord.ext import commands
-from discord import app_commands
+import discord
+from discord.ext import commands, tasks
 from Utils.constants import emojis
 import re
 from datetime import datetime, timedelta
-from discord.ext import tasks
 from typing import Optional, Union
 import random
-from discord import ui, ButtonStyle, Button, Interaction, Embed, Color, utils, NotFound
 
 
-class GiveawaysView(ui.View):
+class GiveawaysView(discord.ui.View):
     def __init__(self, mongo):
         super().__init__(timeout=None)
         self.mongo = mongo
         self.db = self.mongo["Data"]
         self.collection = self.db["Giveaways"]
 
-    @ui.button(label="Join", style=ButtonStyle.green, custom_id=f"persistent_view:enter")
-    async def enter(self, interaction: Interaction, button: Button):
+    @discord.ui.button(label="Join", style=discord.ButtonStyle.green, custom_id=f"persistent_view:enter")
+    async def enter(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
 
         find = await self.collection.find_one({"message_id": interaction.message.id})
@@ -35,11 +33,10 @@ class GiveawaysView(ui.View):
         duration = find.get("duration")
         time = find.get("ends")
         user = await interaction.guild.fetch_member(find.get("hosted_by"))
-        timestamp = utils.format_dt(time, "R")
-        embed = Embed(title="Giveaway!", description=f"**Prize:** {prize}\n**Winners:** {winners}\n**Ends:** {timestamp}\n**Joined:** {len(joined)}", color=Color.dark_embed())
+        timestamp = discord.utils.format_dt(time, "R")
+        embed = discord.Embed(title="Giveaway!", description=f"**Prize:** {prize}\n**Winners:** {winners}\n**Ends:** {timestamp}\n**Joined:** {len(joined)}", color=discord.Color.dark_embed())
         
         try:
-
             embed.set_footer(text=f"Hosted by: {user.name}", icon_url=user.display_avatar.url)
             embed.set_thumbnail(url=user.display_avatar.url)
             embed.set_author(icon_url=user.display_avatar.url, name=user.name)
@@ -49,8 +46,8 @@ class GiveawaysView(ui.View):
         await interaction.message.edit(embed=embed, view=self)
         return await self.collection.update_one({"message_id": interaction.message.id}, {"$set": {"Joined": joined}})
     
-    @ui.button(label="Voters", style=ButtonStyle.blurple, custom_id=f"persistent_view:voters")
-    async def voters(self, interaction: Interaction, button: Button):
+    @discord.ui.button(label="Voters", style=discord.ButtonStyle.blurple, custom_id=f"persistent_view:voters")
+    async def voters(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
 
         find = await self.collection.find_one({"message_id": interaction.message.id})
@@ -62,12 +59,10 @@ class GiveawaysView(ui.View):
         user_mentions = [f"<@{user_id}>" for user_id in joined]
         user_mentions_str = "\n".join(user_mentions)
 
-        embed = Embed(title="Giveaway Participants", description=user_mentions_str, color=Color.dark_embed())
+        embed = discord.Embed(title="Giveaway Participants", description=user_mentions_str, color=discord.Color.dark_embed())
         embed.set_footer(text=f"Total Participants: {len(joined)}")
         await interaction.followup.send(embed=embed, ephemeral=True)
         return
-
-
 
 
 class Giveaways(commands.Cog):
@@ -104,7 +99,7 @@ class Giveaways(commands.Cog):
                     await self.client.mongo["Data"]["Giveaways"].delete_one({"message_id": giveaway["message_id"]})
 
                     return await message.reply(f"**Giveaway Winner(s):** {', '.join(winner_mentions)}")
-                except NotFound:
+                except discord.NotFound:
                     await self.client.mongo["Data"]["Giveaways"].delete_one({"message_id": giveaway["message_id"]})
 
                     pass
@@ -130,11 +125,10 @@ class Giveaways(commands.Cog):
 
         reminder_time = datetime.now() + timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
 
-
         if winners < 1:
             return await ctx.send(f"{emojis['no']} **{ctx.author.name},** please specify at least one winner")
 
-        embed = Embed(title="Giveaway!", description=f"**Prize:** {prize}\n**Winners:** {winners}\n**Ends:** {utils.format_dt(reminder_time, 'R')}\n**Joined:** 0", color=Color.dark_embed())
+        embed = discord.Embed(title="Giveaway!", description=f"**Prize:** {prize}\n**Winners:** {winners}\n**Ends:** {discord.utils.format_dt(reminder_time, 'R')}\n**Joined:** 0", color=discord.Color.dark_embed())
         embed.set_footer(text=f"Hosted by: {ctx.author.name}", icon_url=ctx.author.display_avatar.url)
 
         embed.set_author(icon_url=ctx.author.display_avatar.url, name=ctx.author.name)
@@ -192,9 +186,6 @@ class Giveaways(commands.Cog):
     @commands.Cog.listener()
     async def on_cog_unload(self):
         self.check_giveaways.stop()
-
-        
-
 
 
 async def setup(client: commands.Bot) -> None:

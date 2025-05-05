@@ -14,11 +14,11 @@ class ModulesView(ui.Select):
                 value="notifications",
                 default=modules.get("notifications", {}).get("is_enabled", False)
             ),
-            SelectOption(
-                label="Moderation",  
-                value="moderation_module",
-                default=modules.get("moderation_module", {}).get("is_enabled", False)
-            ),
+            #SelectOption(
+                #label="Moderation",  
+                #value="moderation_module",
+                #default=modules.get("moderation_module", {}).get("is_enabled", False)
+            #),
             SelectOption(
                 label="Reports",  
                 value="report_module",
@@ -64,9 +64,10 @@ class ConfigPanel(ui.Select):
         self.mongo = mongo
         options=[
             SelectOption(label="Modules", description="Manage your servers enabled modules",value="modules" ,emoji=emojis.get("modules", None)),
+            SelectOption(label="Logging", description="Manage your servers logging channels", value="logging", emoji=emojis.get("logging", None)),
             SelectOption(label="Notifications", description="Manage your servers notifications", value="notifications", emoji=emojis.get("notifications", None)),
             SelectOption(label="Permissions", description="Manage what roles can do what", value="perms", emoji=emojis.get("permissions", None)),
-            SelectOption(label="Moderation", description="Manage your servers moderation", value="moderation", emoji=emojis.get("moderation", None)),
+            #SelectOption(label="Moderation", description="Manage your servers moderation", value="moderation", emoji=emojis.get("moderation", None)),
             SelectOption(label="Suggestions", description="Manage your servers suggestions", value="suggestions", emoji=emojis.get("suggestions", None)),
 
             ]

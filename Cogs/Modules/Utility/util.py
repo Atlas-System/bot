@@ -1,14 +1,5 @@
-from discord import Interaction, Embed, Color, ButtonStyle
 from discord.ext import commands
-from discord import app_commands
 from Utils.constants import emojis, ATLAS_GREEN
-import asyncio
-import time
-from collections import deque
-import io
-import discord.ui
-
-
 
 
 class Util(commands.Cog):

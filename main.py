@@ -34,6 +34,7 @@ class Bot(commands.AutoShardedBot):
     
     @watch(path="Cogs", preload=True)
     async def on_ready(self):
+        await self.unload_extension("Cogs.Modules.Moderation.moderation")
         if not self.mongo:
             print("init mongo")
             self.mongo = AsyncIOMotorClient(getenv("MONGO"), maxPoolSize=10, minPoolSize=1)

@@ -20,20 +20,8 @@ The CC BY-NC-SA license requires the following elements:
 
 Atlas requires all environment variables to be set, and for the Core API to be online.
 
-### Hosting Information
-We host Atlas using docker, which is why there is a Github Action to deploy, but support will not be provided for this.
-
 ## Contributing
 If you would like to contribute to the project, please fork the repository and submit a pull request, detailing the changes you have made.
 
-## Workflows  
-### Deployment to a Docker Container  
-Automates the process of building and deploying the application to a Docker container.  
-
-### CodeQL Analysis  
-Performs security and quality analysis on the codebase to detect vulnerabilities and improve code quality.  
-
-## Modifications  
-All workflows can be safely deleted if needed. Removing them will not affect the core functionality of the code itself.  
 
 [![CodeFactor](https://www.codefactor.io/repository/github/markination/atlas/badge)](https://www.codefactor.io/repository/github/markination/atlas)

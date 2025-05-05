@@ -1,8 +1,6 @@
 from discord.ext import commands
 from Utils.constants import emojis
-from discord import Embed, utils, Color, Member
-
-
+import discord
 
 
 class Info(commands.Cog):
@@ -19,9 +17,9 @@ class Info(commands.Cog):
         text = ctx.guild.text_channels
         voice = ctx.guild.voice_channels
 
-        embed = Embed(
+        embed = discord.Embed(
             title=f"{ctx.guild.name}",
-            description=f"**Owner:** {owner.mention}\n**Guild:** {ctx.guild.name} ``{ctx.guild.id}``\n **Members:** ``{ctx.guild.member_count}``\n **Created:** {utils.format_dt(ctx.guild.created_at, 'F')}\n **Channels:** {len(ctx.guild.channels)}\n**Roles:** {len(ctx.guild.roles)}",
+            description=f"**Owner:** {owner.mention}\n**Guild:** {ctx.guild.name} ``{ctx.guild.id}``\n **Members:** ``{ctx.guild.member_count}``\n **Created:** {discord.utils.format_dt(ctx.guild.created_at, 'F')}\n **Channels:** {len(ctx.guild.channels)}\n**Roles:** {len(ctx.guild.roles)}",
             color=0x2B2D31,
         )
         embed.add_field(
@@ -50,11 +48,11 @@ class Info(commands.Cog):
 
     
     @commands.hybrid_command(name="user", description="Get information about a user")
-    async def user(self, ctx: commands.Context, user: Member): 
+    async def user(self, ctx: commands.Context, user: discord.Member): 
 
-        embed = Embed(
+        embed = discord.Embed(
             title=f"@{user.name}",
-            description=f"**User:** {user.mention} ``{user.id}``\n**Joined:** {utils.format_dt(user.joined_at, 'F')}\n **Created:** {utils.format_dt(user.created_at, 'F')}",
+            description=f"**User:** {user.mention} ``{user.id}``\n**Joined:** {discord.utils.format_dt(user.joined_at, 'F')}\n **Created:** {discord.utils.format_dt(user.created_at, 'F')}",
             color=0x2B2D31,
         )
         
@@ -68,11 +66,6 @@ class Info(commands.Cog):
         embed.set_author(name=f"{user}", icon_url=user.display_avatar)
 
         return await ctx.send(embed=embed)
-
-
-
-
-
 
 
 async def setup(client: commands.Bot) -> None:
