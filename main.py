@@ -1,4 +1,5 @@
-import sys 
+import sys
+from webbrowser import get 
 sys.dont_write_bytecode = True
 from os import getenv, path, remove
 from gc import collect
@@ -12,6 +13,8 @@ from cogwatch import watch
 from motor.motor_asyncio import AsyncIOMotorClient
 from Cogs.Modules.Utility.suggestion import SuggestionViews
 from Cogs.Modules.Engagement.giveaways import GiveawaysView
+from Utils.emojis import EmojiManager
+from Utils.logger import get_logger
 
 
 if not getenv("IN_DOCKER"):
@@ -29,22 +32,36 @@ start()
 class Bot(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(command_prefix=commands.when_mentioned_or("!!"), intents=intents)
-        self.mongo = AsyncIOMotorClient(getenv("MONGO"), maxPoolSize=10, minPoolSize=1)
+        self.mongo = AsyncIOMotorClient(getenv("db"), maxPoolSize=10, minPoolSize=1)
         self.help_command = None
+        self.Emoji_Manager = EmojiManager(self)
+
+        self.logger = get_logger("bot", "bot.log")
+        self.logger.info("Logging Setup.")
     
     @watch(path="Cogs", preload=True)
     async def on_ready(self):
+        try:
+            await self.Emoji_Manager.setup_emojis()
+        
+        except Exception as e:
+            self.logger.error(f"Error setting up emojis: {e}")
+            self.Emoji_Manager = None
+            return
+        
         await self.unload_extension("Cogs.Modules.Moderation.moderation")
         if not self.mongo:
-            print("init mongo")
+            self.logger.error("MongoDB Setup Failed, Retrying.")
             self.mongo = AsyncIOMotorClient(getenv("MONGO"), maxPoolSize=10, minPoolSize=1)
 
         self.add_view(SuggestionViews(mongo=self.mongo))
         self.add_view(GiveawaysView(mongo=self.mongo))
 
+
+
         await self.tree.sync()
-        print(f"Commands Synced Globally: {len(self.tree.get_commands())}")
-        print(f"Bot is ready, logged in as {self.user.name} ({self.user.id})")
+        self.logger.info(f"Commands Synced Globally: {len(self.tree.get_commands())}")
+        self.logger.info(f"Bot is ready, logged in as {self.user.name} ({self.user.id})")
         await self.change_presence(activity=CustomActivity("Atlas Testing"))
 
 
