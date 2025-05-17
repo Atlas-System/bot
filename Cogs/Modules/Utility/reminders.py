@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from discord.ext import tasks
 from Utils.pages import Simple
 import discord
+from Utils.embeds import ModuleDisabled
 
 class Reminders(commands.Cog):
     def __init__(self, client: commands.Bot):
@@ -17,6 +18,18 @@ class Reminders(commands.Cog):
 
     @reminder.command(name="create", description="Create a reminder")
     async def create_reminder(self, ctx: commands.Context, duration: str, *, message: str):
+        find = await self.client.mongo["Atlas"]["Config"].find_one({"_id": ctx.guild.id})
+        if not find:
+            return await ctx.send(f"{self.client.Emojis['no']} **{ctx.author.name},** please setup your server.", ephemeral=True)
+
+        config = find.get("Config", {})
+        if not config.get("reminder_module", {}).get("enabled", False):
+            data = ModuleDisabled()
+            return await ctx.send(
+                embed=data["embed"],
+                view=data["view"],
+            )
+
 
         match = fullmatch(r'(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?', duration)
         if not match or not any(match.groups()):

@@ -4,28 +4,22 @@ from discord.ext import commands
 from Cogs.Config.Modules import permissions, moderation, notifications, suggestions
 
 
+
 class ModulesView(ui.Select):
     def __init__(self, modules, mongo):
         self.mongo = mongo
 
-
         options = [
             SelectOption(
-                label="Notifications",  
+                label="Notifications",
                 value="notifications",
                 default=modules.get("notifications", {}).get("is_enabled", False)
             ),
-            #SelectOption(
-                #label="Moderation",  
-                #value="moderation_module",
-                #default=modules.get("moderation_module", {}).get("is_enabled", False)
-            #),
             SelectOption(
-                label="Reports",  
-                value="report_module",
-                default=modules.get("report_module", {}).get("is_enabled", False)
+                label="Reminders",
+                value="reminders_module",
+                default=modules.get("reminders_module", {}).get("is_enabled", False)
             ),
-
             SelectOption(
                 label="Suggestions",
                 value="suggestion_module",
@@ -40,23 +34,27 @@ class ModulesView(ui.Select):
 
         guild_id = interaction.guild.id
         config_collection = self.mongo["Atlas"]["Config"]
-        
+
         guild_config = await config_collection.find_one({"_id": guild_id})
-        
         if not guild_config or "Config" not in guild_config:
-            return await interaction.followup.send(f"*{interaction.user.name},** no guild configuration was found.", ephemeral=True)
-            
-        
-        updated_config = guild_config["Config"]
-        
-        for module_name, module_data in updated_config.items():
-            module_data["is_enabled"] = module_name in self.values
-        
+            return await interaction.followup.send(
+                f"*{interaction.user.name},* no guild configuration was found.", ephemeral=True
+            )
+
+        updated_config = guild_config.get("Config", {})
+
+        for module_name in self.values:
+            if module_name not in updated_config:
+                updated_config[module_name] = {"is_enabled": True}
+
+        for module_name in updated_config.keys():
+            updated_config[module_name]["is_enabled"] = module_name in self.values
+
         await config_collection.update_one({"_id": guild_id}, {"$set": {"Config": updated_config}})
-        
-        return await interaction.followup.send(f"**{interaction.user.name},** I have updated the modules.", ephemeral=True)
 
-
+        return await interaction.followup.send(
+            f"**{interaction.user.name},** I have updated the modules.", ephemeral=True
+        )
 
         
 
@@ -131,7 +129,7 @@ class ConfigPanel(ui.Select):
 
             view = ui.View(timeout=None)
             view.add_item(ModulesView(mongo=self.mongo, modules=modules))
-            view.add_item(ConfigPanel(mongo=self.mongo))
+            view.add_item(ConfigPanel(mongo=self.mongo, client=self.client))
 
             embed = Embed(
                 title="", 
