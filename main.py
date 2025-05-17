@@ -1,5 +1,8 @@
+from re import S
 import sys
-from webbrowser import get 
+from webbrowser import get
+
+import dotenv 
 sys.dont_write_bytecode = True
 from os import getenv, path, remove
 from gc import collect
@@ -15,14 +18,8 @@ from Cogs.Modules.Utility.suggestion import SuggestionViews
 from Cogs.Modules.Engagement.giveaways import GiveawaysView
 from Utils.emojis import EmojiManager
 from Utils.logger import get_logger
-
-
-if not getenv("IN_DOCKER"):
-    load_dotenv()
-
-
-TOKEN = getenv(getenv("ENV"))
-MONGO_URI = getenv("MONGO")
+dotenv.load_dotenv()
+TOKEN = getenv("TOKEN")
 
 intents = Intents.default().all()
 
@@ -32,9 +29,10 @@ start()
 class Bot(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(command_prefix=commands.when_mentioned_or("!!"), intents=intents)
-        self.mongo = AsyncIOMotorClient(getenv("db"), maxPoolSize=10, minPoolSize=1)
+        self.mongo = AsyncIOMotorClient(getenv("DB"), maxPoolSize=10, minPoolSize=1)
         self.help_command = None
         self.Emoji_Manager = EmojiManager(self)
+        self.Emojis = self.Emoji_Manager.emojis
 
         self.logger = get_logger("bot", "bot.log")
         self.logger.info("Logging Setup.")
@@ -54,8 +52,8 @@ class Bot(commands.AutoShardedBot):
             self.logger.error("MongoDB Setup Failed, Retrying.")
             self.mongo = AsyncIOMotorClient(getenv("MONGO"), maxPoolSize=10, minPoolSize=1)
 
-        self.add_view(SuggestionViews(mongo=self.mongo))
-        self.add_view(GiveawaysView(mongo=self.mongo))
+        self.add_view(SuggestionViews(mongo=self.mongo, client=self))
+        self.add_view(GiveawaysView(mongo=self.mongo, client=self))
 
 
 

@@ -1,5 +1,5 @@
-from Utils.constants import emojis
 import discord
+
 
 class EventChannelSelect(discord.ui.ChannelSelect):
     def __init__(self, mongo, event):
@@ -14,7 +14,7 @@ class EventChannelSelect(discord.ui.ChannelSelect):
         find = await db.find_one({"_id": interaction.guild.id})
         if not find:
             await db.insert_one({"_id": interaction.guild.id})
-            return await interaction.followup.send(ephemeral=True, content=f"{emojis['no']} **{interaction.user.name},** please re run the command.")
+            return await interaction.followup.send(ephemeral=True, content=f"**{interaction.user.name},** please re run the command.")
         
         insert = await db.update_one(
             {"_id": interaction.guild.id},
@@ -22,7 +22,7 @@ class EventChannelSelect(discord.ui.ChannelSelect):
             upsert=True
         )
 
-        return await interaction.followup.send(ephemeral=True, content=f"{emojis['yes']} **{interaction.user.name},** I have saved the selected channel.")
+        return await interaction.followup.send(ephemeral=True, content=f"**{interaction.user.name},** I have saved the selected channel.")
 
 
 
@@ -41,11 +41,11 @@ class LoggingType(discord.ui.Select):
         find = await db.find_one({"_id": interaction.guild.id})
         if not find:
             await db.insert_one({"_id": interaction.guild.id})
-            return await interaction.followup.send(ephemeral=True, content=f"{emojis['no']} **{interaction.user.name},** please re run the command.")
+            return await interaction.followup.send(ephemeral=True, content=f"**{interaction.user.name},** please re run the command.")
 
         select = EventChannelSelect(mongo=self.mongo, event=self.values[0])
         view = discord.ui.View(timeout=120).add_item(select)
-        return await interaction.followup.send(ephemeral=True, content=f"{emojis['yes']} **{interaction.user.name},** please select a channel for the event.", view=view)
+        return await interaction.followup.send(ephemeral=True, content=f"**{interaction.user.name},** please select a channel for the event.", view=view)
             
 
         

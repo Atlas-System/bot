@@ -1,4 +1,4 @@
-from Utils.constants import emojis
+
 from discord import Interaction, ui
 
 class SuggestionsChannel(ui.ChannelSelect):
@@ -17,7 +17,7 @@ class SuggestionsChannel(ui.ChannelSelect):
             {"$set": {"Config.suggestion_module.log_channel_id": self.values[0].id}},
             upsert=True
         )
-        return await interaction.followup.send(ephemeral=True, content=f"{emojis['yes']} **{interaction.user.name},** I have saved the suggestions channel.")
+        return await interaction.followup.send(ephemeral=True, content=f"**{interaction.user.name},** I have saved the suggestions channel.")
     
 
 class SuggestionView(ui.View):

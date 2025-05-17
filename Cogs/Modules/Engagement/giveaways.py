@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands, tasks
-from Utils.constants import emojis
+
 import re
 from datetime import datetime, timedelta
 from typing import Optional, Union
@@ -8,9 +8,10 @@ import random
 
 
 class GiveawaysView(discord.ui.View):
-    def __init__(self, mongo):
+    def __init__(self,client ,mongo):
         super().__init__(timeout=None)
         self.mongo = mongo
+        self.client = client
         self.db = self.mongo["Data"]
         self.collection = self.db["Giveaways"]
 
@@ -23,10 +24,10 @@ class GiveawaysView(discord.ui.View):
 
         if interaction.user.id in joined:
             joined.remove(interaction.user.id)
-            await interaction.followup.send(ephemeral=True, content=f"{emojis['no']} **{interaction.user.name},** you have left the giveaway.")
+            await interaction.followup.send(ephemeral=True, content=f"{self.client.Emojis['no']} **{interaction.user.name},** you have left the giveaway.")
         else:
             joined.append(interaction.user.id)
-            await interaction.followup.send(ephemeral=True, content=f"{emojis['yes']} **{interaction.user.name},** you have joined the giveaway.")
+            await interaction.followup.send(ephemeral=True, content=f"{self.client.Emojis['yes']} **{interaction.user.name},** you have joined the giveaway.")
 
         prize = find.get("prize")
         winners = find.get("winners")
@@ -54,7 +55,7 @@ class GiveawaysView(discord.ui.View):
         joined = find.get("Joined", [])
 
         if not joined:
-            return await interaction.followup.send(ephemeral=True, content=f"{emojis['no']} **{interaction.user.name},** no one has joined yet.")
+            return await interaction.followup.send(ephemeral=True, content=f"{self.client.Emojis['no']} **{interaction.user.name},** no one has joined yet.")
 
         user_mentions = [f"<@{user_id}>" for user_id in joined]
         user_mentions_str = "\n".join(user_mentions)
@@ -84,7 +85,7 @@ class Giveaways(commands.Cog):
             if channel:
                 try:
                     message = await channel.fetch_message(giveaway["message_id"])
-                    view = GiveawaysView(mongo=self.client.mongo)
+                    view = GiveawaysView(client=self.client, mongo=self.client.mongo)
                     view.enter.disabled = True
                     view.stop()
                     await message.edit(view=view)
@@ -116,7 +117,7 @@ class Giveaways(commands.Cog):
 
         match = re.fullmatch(r'(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?', duration)
         if not match or not any(match.groups()):
-            return await ctx.send(f"{emojis['no']} **{ctx.author.name},** please use `d, h, m, s`")
+            return await ctx.send(f"{self.client.Emojis['no']} **{ctx.author.name},** please use `d, h, m, s`")
 
         days = int(match.group(1)) if match.group(1) else 0
         hours = int(match.group(2)) if match.group(2) else 0
@@ -126,7 +127,7 @@ class Giveaways(commands.Cog):
         reminder_time = datetime.now() + timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
 
         if winners < 1:
-            return await ctx.send(f"{emojis['no']} **{ctx.author.name},** please specify at least one winner")
+            return await ctx.send(f"{self.client.Emojis['no']} **{ctx.author.name},** please specify at least one winner")
 
         embed = discord.Embed(title="Giveaway!", description=f"**Prize:** {prize}\n**Winners:** {winners}\n**Ends:** {discord.utils.format_dt(reminder_time, 'R')}\n**Joined:** 0", color=discord.Color.dark_embed())
         embed.set_footer(text=f"Hosted by: {ctx.author.name}", icon_url=ctx.author.display_avatar.url)
@@ -159,16 +160,16 @@ class Giveaways(commands.Cog):
 
         giveaway = await self.client.mongo["Data"]["Giveaways"].find_one({"message_id": message_id})
         if not giveaway:
-            return await ctx.send(f"{emojis['no']} **{ctx.author.name},** I could not find that giveaway.")
+            return await ctx.send(f"{self.client.Emojis['no']} **{ctx.author.name},** I could not find that giveaway.")
 
         channel = self.client.get_channel(giveaway["channel_id"])
         if not channel:
-            return await ctx.send(f"{emojis['no']} **{ctx.author.name},** I could not find that channel.")
+            return await ctx.send(f"{self.client.Emojis['no']} **{ctx.author.name},** I could not find that channel.")
 
         message = await channel.fetch_message(giveaway["message_id"])
         winners = giveaway["winners"]
         if giveaway.get("ended", False) is False:
-            return await ctx.send(f"{emojis['no']} **{ctx.author.name},** that giveaway is still active.")
+            return await ctx.send(f"{self.client.Emojis['no']} **{ctx.author.name},** that giveaway is still active.")
         joined = giveaway.get("Joined", [])
         if len(joined) < winners:
             winners = len(joined)

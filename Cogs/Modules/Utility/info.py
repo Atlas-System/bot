@@ -1,5 +1,4 @@
 from discord.ext import commands
-from Utils.constants import emojis
 import discord
 
 

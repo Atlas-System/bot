@@ -1,4 +1,3 @@
-from Utils.constants import emojis
 from discord import ui, Interaction
 
 class NotificationsChannel(ui.ChannelSelect):
@@ -17,7 +16,7 @@ class NotificationsChannel(ui.ChannelSelect):
             {"$set": {"Config.notifications.log_channel_id": self.values[0].id}},
             upsert=True
         )
-        return await interaction.followup.send(ephemeral=True, content=f"{emojis['yes']} **{interaction.user.name},** I have saved the notifications channel.")
+        return await interaction.followup.send(ephemeral=True, content=f"**{interaction.user.name},** I have saved the notifications channel.")
     
 
 class NotificationsView(ui.View):

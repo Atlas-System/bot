@@ -1,5 +1,5 @@
 import discord
-from Utils.constants import emojis
+
 
 class StaffTeamRole(discord.ui.RoleSelect):
     def __init__(self, mongo, staff_roles):
@@ -18,7 +18,7 @@ class StaffTeamRole(discord.ui.RoleSelect):
             {"$set": {"staff_roles": role_ids}},
             upsert=True
         )
-        return await interaction.followup.send(ephemeral=True, content=f"{emojis['yes']} **{interaction.user.name},** I have saved the staff roles")
+        return await interaction.followup.send(ephemeral=True, content=f"**{interaction.user.name},** I have saved the staff roles")
 
 
 class ManagementRole(discord.ui.RoleSelect):
@@ -39,7 +39,7 @@ class ManagementRole(discord.ui.RoleSelect):
             {"$set": {"management_roles": role_ids}},
             upsert=True
         )
-        return await interaction.followup.send(ephemeral=True, content=f"{emojis['yes']} **{interaction.user.name},** I have saved the management roles")
+        return await interaction.followup.send(ephemeral=True, content=f"**{interaction.user.name},** I have saved the management roles")
 
 class PermissionsView(discord.ui.View):
     def __init__(self, mongo, staff_roles, mgmt_roles):

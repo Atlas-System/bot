@@ -1,6 +1,5 @@
 from discord.ext import commands
 from re import fullmatch
-from Utils.constants import emojis
 from datetime import datetime, timedelta
 from discord.ext import tasks
 from Utils.pages import Simple
@@ -21,7 +20,7 @@ class Reminders(commands.Cog):
 
         match = fullmatch(r'(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?', duration)
         if not match or not any(match.groups()):
-            return await ctx.send(f"{emojis['no']} **{ctx.author.name},** please use `d, h, m, s`")
+            return await ctx.send(f"{self.client.Emojis['no']} **{ctx.author.name},** please use `d, h, m, s`")
 
         days = int(match.group(1)) if match.group(1) else 0
         hours = int(match.group(2)) if match.group(2) else 0
@@ -42,7 +41,7 @@ class Reminders(commands.Cog):
             "timestamp": reminder_time
         })
 
-        await ctx.send(f"{emojis['yes']} **{ctx.author.name},** your reminder has been set at {timestamp} for **{message}**")
+        await ctx.send(f"{self.client.Emojis['yes']} **{ctx.author.name},** your reminder has been set at {timestamp} for **{message}**")
         return
     
     @reminder.command(name="active", description="Check active reminders")
@@ -54,7 +53,7 @@ class Reminders(commands.Cog):
 
         reminders_list = await reminders.to_list(length=None)
         if not reminders_list:
-            return await ctx.send(f"{emojis['no']} **{ctx.author.name},** there are no reminders active")
+            return await ctx.send(f"{self.client.Emojis['no']} **{ctx.author.name},** there are no reminders active")
         if len(reminders_list) > 10:  
             pages = []
             for i in range(0, len(reminders_list), 10):
@@ -109,7 +108,7 @@ class Reminders(commands.Cog):
             if user:
                 channel = self.client.get_channel(reminder["channel_id"])
                 if channel:
-                    await channel.send(f"{emojis['yes']} {user.mention}, **{reminder['message']}**")
+                    await channel.send(f"{self.client.Emojis['yes']} {user.mention}, **{reminder['message']}**")
 
             collection.delete_one({"_id": reminder["_id"]})
 

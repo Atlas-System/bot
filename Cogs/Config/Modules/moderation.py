@@ -1,4 +1,3 @@
-from Utils.constants import emojis
 from discord import ui, Interaction, SelectOption
 
 
@@ -20,13 +19,13 @@ class AdvancedPermissionsToggle(ui.Select):
             db = self.mongo["Atlas"]["Config"]
             guild_id = interaction.guild.id
             await db.update_one({"_id": guild_id}, {"$set": {f"Config.moderation_module.permissions.{self.item}": 1}}, upsert=True)
-            return await interaction.followup.send(ephemeral=True, content=f"{emojis['yes']} **{interaction.user.name},** The staff role can now use that command.")
+            return await interaction.followup.send(ephemeral=True, content=f"**{interaction.user.name},** The staff role can now use that command.")
         
         elif self.values[0] == "admin":
             db = self.mongo["Atlas"]["Config"]
             guild_id = interaction.guild.id
             await db.update_one({"_id": guild_id}, {"$set": {f"Config.moderation_module.permissions.{self.item}": 2}}, upsert=True)
-            return await interaction.followup.send(ephemeral=True, content=f"{emojis['yes']} **{interaction.user.name},** The admin role can now use that command.")
+            return await interaction.followup.send(ephemeral=True, content=f"**{interaction.user.name},** The admin role can now use that command.")
         
 
 class AdvancedPermissions(ui.Select):
@@ -46,15 +45,15 @@ class AdvancedPermissions(ui.Select):
             find = await db.find_one({"_id": interaction.guild.id})
             if find is None:
                 await db.insert_one({"_id": interaction.guild.id, "Config": {"moderation_module": {"permissions": {}}}})
-                return await interaction.followup.send(ephemeral=True, content=f"{emojis['yes']} **{interaction.user.name},** I have created the advanced permissions for the warning command.")
+                return await interaction.followup.send(ephemeral=True, content=f"**{interaction.user.name},** I have created the advanced permissions for the warning command.")
             
             if find:
                 if find.get("Config", {}).get("moderation_module", {}).get("permissions", {}).get("is_enabled", False) is False:
-                    return await interaction.followup.send(ephemeral=True, content=f"{emojis['no']} **{interaction.user.name},** Advanced permissions are disabled.")
+                    return await interaction.followup.send(ephemeral=True, content=f"**{interaction.user.name},** Advanced permissions are disabled.")
 
             view = ui.View(timeout=None)
             view.add_item(item=AdvancedPermissionsToggle(mongo=self.mongo, item=self.values[0]))
-            return await interaction.followup.send(ephemeral=True, content=f"{emojis['yes']} **{interaction.user.name},** you can now select the permission group for the warning command.", view=view)
+            return await interaction.followup.send(ephemeral=True, content=f"**{interaction.user.name},** you can now select the permission group for the warning command.", view=view)
 
 
 class ModlogChannel(ui.ChannelSelect):
@@ -74,7 +73,7 @@ class ModlogChannel(ui.ChannelSelect):
             {"$set": {"Config.moderation_module.log_channel_id": self.values[0].id}},
             upsert=True
         )
-        return await interaction.followup.send(ephemeral=True, content=f"{emojis['yes']} **{interaction.user.name},** I have saved the moderation channel.")
+        return await interaction.followup.send(ephemeral=True, content=f"**{interaction.user.name},** I have saved the moderation channel.")
     
 class RequireConfirmation(ui.Select):
     def __init__(self, mongo, enabled):
@@ -91,13 +90,13 @@ class RequireConfirmation(ui.Select):
             db = self.mongo["Atlas"]["Config"]
             guild_id = interaction.guild.id
             await db.update_one({"_id": guild_id}, {"$set": {"Config.moderation_module.confirmation": True}}, upsert=True)
-            return await interaction.followup.send(ephemeral=True, content=f"{emojis['yes']} **{interaction.user.name},** I have enabled the confirmation for moderation commands.")
+            return await interaction.followup.send(ephemeral=True, content=f"**{interaction.user.name},** I have enabled the confirmation for moderation commands.")
         
         elif self.values[0] == "disable":
             db = self.mongo["Atlas"]["Config"]
             guild_id = interaction.guild.id
             await db.update_one({"_id": guild_id}, {"$set": {"Config.moderation_module.confirmation": False}}, upsert=True)
-            return await interaction.followup.send(ephemeral=True, content=f"{emojis['yes']} **{interaction.user.name},** I have disabled the confirmation for moderation commands.")
+            return await interaction.followup.send(ephemeral=True, content=f"**{interaction.user.name},** I have disabled the confirmation for moderation commands.")
         
 class ModerationView(ui.View):
     def __init__(self, mongo,  modlog_channel, enabled):

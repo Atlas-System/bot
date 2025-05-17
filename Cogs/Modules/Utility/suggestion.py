@@ -1,11 +1,11 @@
 from discord.ext import commands
 from motor.motor_asyncio import AsyncIOMotorClient
-from Utils.constants import emojis
 import discord
 
 class SuggestionsManagement(discord.ui.View):
-    def __init__(self, mongo):
+    def __init__(self,client, mongo):
         super().__init__(timeout=None)
+        self.client = client
         self.mongo = mongo
         self.db = self.mongo["Data"]
         self.collection = self.db["Suggestions"]
@@ -20,26 +20,27 @@ class SuggestionsManagement(discord.ui.View):
     async def accept(self, interaction: discord.Interaction, button: discord.Button):
         config = await self.mongo["Atlas"]["Config"].find_one({"_id": interaction.guild.id})
         if not config:
-            return await interaction.response.send_message(f"{emojis['no']} **{interaction.user.name},** please setup your server.", ephemeral=True)
+            return await interaction.response.send_message(f"{self.client.Emojis['no']} **{interaction.user.name},** please setup your server.", ephemeral=True)
         
         management_roles = config["Config"].get("management_roles", [])
         if not any(role.id in management_roles for role in interaction.user.roles):
-            return await interaction.response.send_message(f"{emojis['no']} **{interaction.user.name},** you do not have permission to do this.", ephemeral=True)
+            return await interaction.response.send_message(f"{self.client.Emojis['no']} **{interaction.user.name},** you do not have permission to do this.", ephemeral=True)
         
         suggestion = await self.collection.find_one({"message_id": interaction.message.id})
         if not suggestion:
-            return await interaction.response.send_message(f"{emojis['no']} **{interaction.user.name},** I could not find the suggestion.", ephemeral=True)
+            return await interaction.response.send_message(f"{self.client.Emojis['no']} **{interaction.user.name},** I could not find the suggestion.", ephemeral=True)
         
         embed = discord.Embed(
             title=""
         )
 
 class SuggestionViews(discord.ui.View):
-    def __init__(self, mongo):
+    def __init__(self, client, mongo):
         super().__init__(timeout=None)
         self.mongo = mongo
         self.db = self.mongo["Data"]
         self.collection = self.db["Suggestions"]
+        self.client = client
 
     async def has_voted(self, user_id, suggestion_id):
         suggestion = await self.collection.find_one({"message_id": suggestion_id})
@@ -120,9 +121,9 @@ class SuggestionViews(discord.ui.View):
             embed.set_thumbnail(url=user.display_avatar.url)
             embed.set_author(icon_url=user.display_avatar.url, name=user.name)
             await message.edit(embeds=[embed])
-            return await interaction.followup.send(f"{emojis['yes']} **{interaction.user.name},** your vote has been recorded.", ephemeral=True)
+            return await interaction.followup.send(f"{self.client.Emojis['yes']} **{interaction.user.name},** your vote has been recorded.", ephemeral=True)
         
-        return await interaction.followup.send(f"{emojis['no']} **{interaction.user.name},** I could not find the suggestion.", ephemeral=True)
+        return await interaction.followup.send(f"{self.client.Emojis['no']} **{interaction.user.name},** I could not find the suggestion.", ephemeral=True)
             
 
     @discord.ui.button(label="List Voters", style=discord.ButtonStyle.grey, custom_id="persistent_view:list_voters")
@@ -157,8 +158,8 @@ class Suggestions(commands.Cog):
         try:
             config = find["Config"]["suggestion_module"]
         except KeyError:
-            return await ctx.send(content=f"{emojis['no']} **{ctx.author.name},** please setup your suggestions.", ephemeral=True)
-        if not find: return await ctx.send(content=f"{emojis['no']} **{ctx.author.name},** please setup your server.", ephemeral=True)
+            return await ctx.send(content=f"{self.client.Emojis['no']} **{ctx.author.name},** please setup your suggestions.", ephemeral=True)
+        if not find: return await ctx.send(content=f"{self.client.Emojis['no']} **{ctx.author.name},** please setup your server.", ephemeral=True)
 
         try:
             blacklisted_role_id = config["blacklisted_role_id"]
@@ -178,7 +179,7 @@ class Suggestions(commands.Cog):
         suggestion_message = await channel.send(embeds=[embed])
         db = self.bot.mongo["Data"]["Suggestions"]
         await db.insert_one({"user_id": ctx.author.id, "message_id": suggestion_message.id, "suggestion": suggestion, "chnl_id": suggestion_message.channel.id, "time": time, "Upvoters": [], "Downvoters": []})
-        await suggestion_message.edit(view=SuggestionViews(mongo=self.bot.mongo))
+        await suggestion_message.edit(view=SuggestionViews(client=self.bot, mongo=self.bot.mongo))
         await suggestion_message.create_thread(name=f"Suggested by {ctx.author.name}")
         return
         

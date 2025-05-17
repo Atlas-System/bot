@@ -1,12 +1,13 @@
-from discord import SelectOption, Interaction, ButtonStyle, Embed, Color, ui
+from discord import Client, SelectOption, Interaction, ButtonStyle, Embed, Color, ui
 from discord.ext import commands 
-from Utils.constants import emojis
+
 from Cogs.Config.Modules import permissions, moderation, notifications, suggestions
 
 
 class ModulesView(ui.Select):
     def __init__(self, modules, mongo):
         self.mongo = mongo
+
 
         options = [
             SelectOption(
@@ -43,7 +44,7 @@ class ModulesView(ui.Select):
         guild_config = await config_collection.find_one({"_id": guild_id})
         
         if not guild_config or "Config" not in guild_config:
-            return await interaction.followup.send(f"{emojis['no']} **{interaction.user.name},** no guild configuration was found.", ephemeral=True)
+            return await interaction.followup.send(f"*{interaction.user.name},** no guild configuration was found.", ephemeral=True)
             
         
         updated_config = guild_config["Config"]
@@ -53,22 +54,25 @@ class ModulesView(ui.Select):
         
         await config_collection.update_one({"_id": guild_id}, {"$set": {"Config": updated_config}})
         
-        return await interaction.followup.send(f"{emojis['yes']} **{interaction.user.name},** I have updated the modules.", ephemeral=True)
+        return await interaction.followup.send(f"**{interaction.user.name},** I have updated the modules.", ephemeral=True)
 
 
 
         
 
 class ConfigPanel(ui.Select):
-    def __init__(self, mongo):
+    def __init__(self, client, mongo):
         self.mongo = mongo
+        self.client = client
+        
         options=[
-            SelectOption(label="Modules", description="Manage your servers enabled modules",value="modules" ,emoji=emojis.get("modules", None)),
-            SelectOption(label="Logging", description="Manage your servers logging channels", value="logging", emoji=emojis.get("logging", None)),
-            SelectOption(label="Notifications", description="Manage your servers notifications", value="notifications", emoji=emojis.get("notifications", None)),
-            SelectOption(label="Permissions", description="Manage what roles can do what", value="perms", emoji=emojis.get("permissions", None)),
-            #SelectOption(label="Moderation", description="Manage your servers moderation", value="moderation", emoji=emojis.get("moderation", None)),
-            SelectOption(label="Suggestions", description="Manage your servers suggestions", value="suggestions", emoji=emojis.get("suggestions", None)),
+
+            SelectOption(label="Modules", description="Manage your servers enabled modules",value="modules" ,emoji=self.client.Emojis.get("modules", None)),
+            #SelectOption(label="Logging", description="Manage your servers logging channels", value="logging", emoji=self.client.Emojis.get("logging", None)),
+            SelectOption(label="Notifications", description="Manage your servers notifications", value="notifications", emoji=self.client.Emojis.get("notifications", None)),
+            SelectOption(label="Permissions", description="Manage what roles can do what", value="perms", emoji=self.client.Emojis.get("permissions", None)),
+            #SelectOption(label="Moderation", description="Manage your servers moderation", value="moderation", emoji=Emojis.get("moderation", None)),
+            SelectOption(label="Suggestions", description="Manage your servers suggestions", value="suggestions", emoji=self.client.Emojis.get("suggestions", None)),
 
             ]
         super().__init__(placeholder="Configuration Menu",max_values=1,min_values=1,options=options, row=4)

@@ -1,6 +1,5 @@
 from discord.ext import commands
 import discord
-from Utils.constants import emojis, ATLAS_GREEN
 from Utils.utils import check_module_status, permission_check, get_guild_config
 from Utils.embeds import MissingPermissions, ModuleDisabled, MissingConfigChannel, ChannelNotFound, ChannelSendFailure, PermissionError
 from Utils.views import YesNoMenu
