@@ -178,7 +178,7 @@ class Suggestions(commands.Cog):
         embed.set_author(icon_url=ctx.author.display_avatar.url, name=ctx.author.name)
         suggestion_message = await channel.send(embeds=[embed])
         db = self.bot.mongo["Data"]["Suggestions"]
-        await db.insert_one({"user_id": ctx.author.id, "message_id": suggestion_message.id, "suggestion": suggestion, "chnl_id": suggestion_message.channel.id, "time": time, "Upvoters": [], "Downvoters": []})
+        await db.insert_one({"guild_id": ctx.guild.id ,"user_id": ctx.author.id, "message_id": suggestion_message.id, "suggestion": suggestion, "chnl_id": suggestion_message.channel.id, "time": time, "Upvoters": [], "Downvoters": []})
         await suggestion_message.edit(view=SuggestionViews(client=self.bot, mongo=self.bot.mongo))
         await suggestion_message.create_thread(name=f"Suggested by {ctx.author.name}")
         return
