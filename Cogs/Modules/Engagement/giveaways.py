@@ -119,7 +119,7 @@ class Giveaways(commands.Cog):
         find = await self.client.mongo["Atlas"]["Config"].find_one({"_id": ctx.guild.id})
 
         config = find.get("Config", {})
-        if not config.get("reminder_module", {}).get("enabled", False):
+        if not config.get("giveaway_module", {}).get("enabled", False):
             data = ModuleDisabled()
             return await ctx.send(
                 embed=data["embed"],
