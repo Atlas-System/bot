@@ -5,6 +5,7 @@ import re
 from datetime import datetime, timedelta
 from typing import Optional, Union
 import random
+from Utils.embeds import ModuleDisabled
 
 
 class GiveawaysView(discord.ui.View):
@@ -114,6 +115,17 @@ class Giveaways(commands.Cog):
                 await ctx.interaction.response.defer(ephemeral=True)
             except:
                 pass
+
+        find = await self.client.mongo["Atlas"]["Config"].find_one({"_id": ctx.guild.id})
+
+        config = find.get("Config", {})
+        if not config.get("reminder_module", {}).get("enabled", False):
+            data = ModuleDisabled()
+            return await ctx.send(
+                embed=data["embed"],
+                view=data["view"],
+            )
+
 
         match = re.fullmatch(r'(?:(\d+)d)?(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?', duration)
         if not match or not any(match.groups()):

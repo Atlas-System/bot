@@ -24,6 +24,11 @@ class ModulesView(ui.Select):
                 label="Suggestions",
                 value="suggestion_module",
                 default=modules.get("suggestion_module", {}).get("is_enabled", False)
+            ),
+            SelectOption(
+                label="Giveaways",
+                value="giveaways_module",
+                default=modules.get("giveaways_module", {}).get("is_enabled", False)
             )
         ]
 
