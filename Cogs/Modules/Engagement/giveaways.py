@@ -88,6 +88,7 @@ class Giveaways(commands.Cog):
                     message = await channel.fetch_message(giveaway["message_id"])
                     view = GiveawaysView(client=self.client, mongo=self.client.mongo)
                     view.enter.disabled = True
+                    view.voters.disabled = True
                     view.stop()
                     await message.edit(view=view)
                 
