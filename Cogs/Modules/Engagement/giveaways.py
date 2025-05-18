@@ -77,6 +77,7 @@ class Giveaways(commands.Cog):
     async def giveaways(self, ctx: commands.Context):
         pass
 
+
     @tasks.loop(seconds=30)
     async def check_giveaways(self):
         current_time = datetime.now()
@@ -114,8 +115,9 @@ class Giveaways(commands.Cog):
         if ctx.interaction:
             try:
                 await ctx.interaction.response.defer(ephemeral=True)
-            except:
-                pass
+            except Exception as e:
+                print(e)
+                return
 
         find = await self.client.mongo["Atlas"]["Config"].find_one({"_id": ctx.guild.id})
 
@@ -168,8 +170,11 @@ class Giveaways(commands.Cog):
         if ctx.interaction:
             try:
                 await ctx.interaction.response.defer(ephemeral=True)
-            except:
-                pass
+            except Exception as e:
+                print(e)
+                return
+
+
 
         giveaway = await self.client.mongo["Data"]["Giveaways"].find_one({"message_id": message_id})
         if not giveaway:
