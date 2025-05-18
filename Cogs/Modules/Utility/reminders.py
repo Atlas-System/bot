@@ -23,7 +23,7 @@ class Reminders(commands.Cog):
             return await ctx.send(f"{self.client.Emojis['no']} **{ctx.author.name},** please setup your server.", ephemeral=True)
 
         config = find.get("Config", {})
-        if not config.get("reminder_module", {}).get("enabled", False):
+        if not config.get("reminder_module", {}).get("is_enabled", False):
             data = ModuleDisabled()
             return await ctx.send(
                 embed=data["embed"],

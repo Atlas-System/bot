@@ -119,7 +119,7 @@ class Giveaways(commands.Cog):
         find = await self.client.mongo["Atlas"]["Config"].find_one({"_id": ctx.guild.id})
 
         config = find.get("Config", {})
-        if not config.get("giveaway_module", {}).get("enabled", False):
+        if not config.get("giveaways_module", {}).get("is_enabled", False):
             data = ModuleDisabled()
             return await ctx.send(
                 embed=data["embed"],
@@ -158,7 +158,7 @@ class Giveaways(commands.Cog):
             "Joined": [],
             "ended": False
         })
-        await giveaway_message.edit(view=GiveawaysView(mongo=self.client.mongo))
+        await giveaway_message.edit(view=GiveawaysView(mongo=self.client.mongo, client=self.client))
 
         return
     
