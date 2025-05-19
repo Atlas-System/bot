@@ -1,25 +1,21 @@
-from re import S
 import sys
-from webbrowser import get
-
 import dotenv 
 sys.dont_write_bytecode = True
 from os import getenv, path, remove
 from gc import collect
-from dotenv import load_dotenv
 from tracemalloc import start, take_snapshot
 from discord import Intents, MemberCacheFlags, CustomActivity, Embed, Color, VoiceChannel, TextChannel, CategoryChannel, File
 from discord.ext import commands
 from collections import Counter
 from objgraph import get_leaking_objects, typestats, show_backrefs, by_type
 from cogwatch import watch
-from motor.motor_asyncio import AsyncIOMotorClient
+import pymongo
 from Cogs.Modules.Utility.suggestion import SuggestionViews
 from Cogs.Modules.Engagement.giveaways import GiveawaysView
 from Utils.emojis import EmojiManager
 from Utils.logger import get_logger
 dotenv.load_dotenv()
-TOKEN = getenv("TOKEN")
+TOKEN = getenv("PROD_TOKEN")
 
 intents = Intents.default().all()
 
@@ -29,7 +25,7 @@ start()
 class Bot(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(command_prefix=commands.when_mentioned_or("!!"), intents=intents)
-        self.mongo = AsyncIOMotorClient(getenv("DB"), maxPoolSize=10, minPoolSize=1)
+        self.mongo = pymongo.AsyncMongoClient(host=f"mongodb://{getenv('DATABASE_USER')}:{getenv('DATABASE_PASS')}@{getenv('DATABASE_HOST')}:{getenv('DATABASE_PORT')}/?authSource=admin&tls=false", maxPoolSize=10, minPoolSize=1)
         self.help_command = None
         self.Emoji_Manager = EmojiManager(self)
         self.Emojis = self.Emoji_Manager.emojis
@@ -50,7 +46,14 @@ class Bot(commands.AutoShardedBot):
         await self.unload_extension("Cogs.Modules.Moderation.moderation")
         if not self.mongo:
             self.logger.error("MongoDB Setup Failed, Retrying.")
-            self.mongo = AsyncIOMotorClient(getenv("MONGO"), maxPoolSize=10, minPoolSize=1)
+            self.mongo = pymongo.AsyncMongoClient(getenv("MONGO"), maxPoolSize=10, minPoolSize=1)
+
+        try:
+            await self.mongo.admin.command("ping")
+            self.logger.info(f"MongoDB connection successful on {getenv('DATABASE_HOST')}:{getenv('DATABASE_PORT')}.")
+        except Exception as e:
+            self.logger.error(f"MongoDB connection failed: {e}")
+            return await super().close()
 
         self.add_view(SuggestionViews(mongo=self.mongo, client=self))
         self.add_view(GiveawaysView(mongo=self.mongo, client=self))
