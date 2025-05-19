@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, APIRouter, HTTPException, Request, status
 from discord.ext import commands
 from os import getenv
@@ -122,6 +124,8 @@ class APICog(commands.Cog):
             host="0.0.0.0" if getenv("env") == "prod" else "127.0.0.1",
             port=8000,
             log_level="info",
+            ssl_keyfile=os.getenv("PRIVATE_KEY_PATH") if getenv("HTTPS").lower() == "true" else None,
+            ssl_certfile=os.getenv("PUBLIC_KEY_PATH") if getenv("HTTPS").lower() == "true" else None
         )
         server = Server(config)
         await server.serve()
