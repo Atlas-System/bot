@@ -68,7 +68,7 @@ class Bot(commands.AutoShardedBot):
 
     async def close(self):
         if self.mongo:
-            self.mongo.close()
+            await self.mongo.close()
         await super().close()
 
 
