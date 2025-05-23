@@ -14,6 +14,7 @@ from Cogs.Modules.Utility.suggestion import SuggestionViews
 from Cogs.Modules.Engagement.giveaways import GiveawaysView
 from Utils.emojis import EmojiManager
 from Utils.logger import get_logger
+
 dotenv.load_dotenv()
 TOKEN = getenv("PROD_TOKEN")
 
